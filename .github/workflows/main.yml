@@ -1,0 +1,207 @@
+# This is a ba# Aletheia.care
+/ (root)
+├── index.html
+├── style.css
+├── script.js
+├── README.md
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+```
+
+---
+
+## index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aletheia.care</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Welcome to Aletheia.care</h1>
+    <p>Truth. Care. Community.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>About</h2>
+      <p>Aletheia.care is a space dedicated to truth, compassion, and rebuilding the world together. This is a new beginning — and you’re part of it.</p>
+    </section>
+
+    <section>
+      <h2>Get Involved</h2>
+      <p>We’re just getting started. Stay tuned, or reach out through the contact form below.</p>
+      <form name="contact" method="POST" data-netlify="true">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <textarea name="message" placeholder="Your Message"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; <span id="year"></span> Aletheia.care</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+```
+
+---
+
+## style.css
+```css
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #fafafa;
+  color: #333;
+}
+
+header {
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 2rem;
+}
+
+main {
+  padding: 2rem;
+  max-width: 800px;
+  margin: auto;
+}
+
+form input, form textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+button {
+  background: #333;
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  cursor: pointer;
+}
+```
+
+---
+
+## script.js
+```js
+document.getElementById("year").textContent = new Date().getFullYear();
+```
+
+---
+
+## README.md
+```md
+# Aletheia.care
+
+This is the public-facing site for **Aletheia.care** — a community built on truth, care, and justice.
+
+## Deployment Options
+- **GitHub Pages**: free and automatic with the included GitHub Actions workflow.
+- **Netlify**: drag-and-drop the repo or connect directly.
+- **Cloudflare Pages**: free with custom domain support.
+
+## Local Development
+```bash
+git clone https://github.com/YOUR-USERNAME/aletheia-care.git
+cd aletheia-care
+open index.html   # or just double click it
+```
+
+## Contributing
+Pull requests are welcome. Open an issue first to discuss major changes.
+```
+
+---
+
+## .github/workflows/deploy.yml
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
+```
+
+---
+
+## Shell Script for Setup
+Save this as `setup.sh` and run it after editing `YOUR-USERNAME`:
+```bash
+#!/bin/bash
+# Setup Aletheia.care repo locally and push to GitHub
+
+# Variables
+USER="YOUR-USERNAME"
+REPO="aletheia-care"
+
+# Create repo via GitHub CLI
+gh repo create $USER/$REPO --public --confirm
+
+# Clone and setup
+git clone https://github.com/$USER/$REPO.git
+cd $REPO
+
+# Create files
+echo "<!DOCTYPE html><html><body><h1>Aletheia.care</h1></body></html>" > index.html
+echo "# $REPO" > README.md
+
+# Add GitHub Actions workflow
+mkdir -p .github/workflows
+cat <<EOL > .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/configure-pages@v3
+      - uses: actions/upload-pages-artifact@v2
+        with:
+          path: '.'
+      - uses: actions/deploy-pages@v2
+EOL
+
+# Commit and push
+git add .
+git commit -m "Initial commit"
+git push -u origin main
+
+echo "Repo $USER/$REPO created and pushed! GitHub Pages will auto-deploy."
