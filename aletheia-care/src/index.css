@@ -86,3 +86,43 @@ button:focus-visible {
     transform: scale(1.0);
   }
 }
+
+/* Error shake for wrong passphrase */
+.shake {
+  animation: shakeX 0.45s ease-in-out;
+}
+
+@keyframes shakeX {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+/* Breathing timer ring around moon during Stage 2 */
+.timer-ring {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7.5rem; /* ~w-30 for a ring around 7rem image */
+  height: 7.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4), inset 0 0 12px rgba(59, 130, 246, 0.25);
+  animation: ringBreathe 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ringBreathe {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35), inset 0 0 12px rgba(59, 130, 246, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0.08), inset 0 0 18px rgba(59, 130, 246, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35), inset 0 0 12px rgba(59, 130, 246, 0.25);
+  }
+}

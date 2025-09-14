@@ -50,6 +50,7 @@ export default function EscapePuzzle() {
   const [wrongAttempts, setWrongAttempts] = React.useState(0);
   const [lockoutUntil, setLockoutUntil] = React.useState(0);
   const [lockoutSecondsLeft, setLockoutSecondsLeft] = React.useState(0);
+  const [shake, setShake] = React.useState(false);
 
   // konami hook: advance stage when activated
   useKonami(() => {
@@ -272,6 +273,9 @@ export default function EscapePuzzle() {
         return next;
       });
       setRiddleAnswer("");
+      // trigger shake feedback
+      setShake(true);
+      setTimeout(() => setShake(false), 450);
     }
   };
 
@@ -311,12 +315,15 @@ export default function EscapePuzzle() {
         </p>
 
         <div className="mb-4">
-          <img
-            src="/assets/moon.png"
-            alt="moon"
-            className={`mx-auto w-28 h-28 cursor-pointer select-none ${stage === 2 ? 'moon-glow' : ''}`}
-            onClick={onMoonClick}
-          />
+          <div className="relative inline-block">
+            {stage === 2 && <div className="timer-ring" />}
+            <img
+              src="/assets/moon.png"
+              alt="moon"
+              className={`mx-auto w-28 h-28 cursor-pointer select-none ${stage === 2 ? 'moon-glow' : ''}`}
+              onClick={onMoonClick}
+            />
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -333,7 +340,6 @@ export default function EscapePuzzle() {
               <div className="mt-2">
                 <label className="block text-left text-sm mb-1">Riddle answer (one word):</label>
                 <input
-                  className="w-full p-2 rounded bg-slate-700 text-white"
                   value={riddleAnswer}
                   onChange={(e) => setRiddleAnswer(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") checkPassphrase(); }}
@@ -344,6 +350,8 @@ export default function EscapePuzzle() {
                   autoCapitalize="off"
                   spellCheck={false}
                   disabled={lockoutSecondsLeft > 0}
+                  data-shake={shake ? '1' : '0'}
+                  className={`w-full p-2 rounded bg-slate-700 text-white ${shake ? 'shake' : ''}`}
                 />
                 <div className="flex gap-2 mt-2">
                   <button onClick={checkPassphrase} className="px-3 py-1 bg-green-600 rounded" disabled={lockoutSecondsLeft > 0} title={lockoutSecondsLeft > 0 ? `Locked ${lockoutSecondsLeft}s` : undefined}>
