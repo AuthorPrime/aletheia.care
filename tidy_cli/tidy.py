@@ -29,6 +29,9 @@ import shutil
 import sys
 import time
 from dataclasses import dataclass
+import json
+import csv
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -188,6 +191,135 @@ def organize_files(root_dir: Path, organize_mode: str, organize_dir: Path, inclu
     return count
 
 
+def inventory_report(
+    root_dir: Path,
+    include_hidden: bool,
+    exclude_globs: Sequence[str],
+    top_n: int,
+) -> Dict[str, object]:
+    total_files = 0
+    total_size = 0
+    by_extension_count: Dict[str, int] = defaultdict(int)
+    by_extension_size: Dict[str, int] = defaultdict(int)
+    by_month_count: Dict[str, int] = defaultdict(int)
+    by_month_size: Dict[str, int] = defaultdict(int)
+    largest: List[Tuple[int, str]] = []  # (size, path)
+
+    for file_path in iter_files(root_dir, include_hidden, exclude_globs):
+        try:
+            stat = file_path.stat()
+        except OSError:
+            continue
+        size = int(stat.st_size)
+        total_files += 1
+        total_size += size
+
+        # Extension bucket
+        ext = file_path.suffix.lower().lstrip('.') or 'noext'
+        by_extension_count[ext] += 1
+        by_extension_size[ext] += size
+
+        # Month bucket
+        t = time.localtime(stat.st_mtime)
+        month_key = f"{t.tm_year:04d}-{t.tm_mon:02d}"
+        by_month_count[month_key] += 1
+        by_month_size[month_key] += size
+
+        # Track largest
+        largest.append((size, str(file_path)))
+
+    largest.sort(reverse=True)
+    top_largest = [{"path": p, "size_bytes": s} for s, p in largest[: max(0, top_n)]]
+
+    ext_summary = [
+        {"ext": ext, "count": by_extension_count[ext], "size_bytes": by_extension_size[ext]}
+        for ext in sorted(by_extension_count.keys())
+    ]
+    month_summary = [
+        {"month": month, "count": by_month_count[month], "size_bytes": by_month_size[month]}
+        for month in sorted(by_month_count.keys())
+    ]
+
+    return {
+        "root": str(root_dir),
+        "total_files": total_files,
+        "total_size_bytes": total_size,
+        "by_extension": ext_summary,
+        "by_month": month_summary,
+        "top_largest": top_largest,
+    }
+
+
+def emit_report(report: Dict[str, object], fmt: str, output: Optional[Path]) -> None:
+    if fmt == 'json':
+        text = json.dumps(report, indent=2)
+        if output:
+            ensure_directory(output.parent)
+            output.write_text(text)
+            print(f"Wrote JSON report to {output}")
+        else:
+            print(text)
+        return
+
+    if fmt == 'csv':
+        # Single CSV with typed rows: section,type/key,count,size
+        rows: List[Dict[str, object]] = []
+        rows.append({"section": "totals", "key": "total_files", "count": report["total_files"], "size_bytes": report["total_size_bytes"]})
+        for item in report.get("by_extension", []):
+            rows.append({"section": "by_extension", "key": item["ext"], "count": item["count"], "size_bytes": item["size_bytes"]})
+        for item in report.get("by_month", []):
+            rows.append({"section": "by_month", "key": item["month"], "count": item["count"], "size_bytes": item["size_bytes"]})
+        for item in report.get("top_largest", []):
+            rows.append({"section": "top_largest", "key": item["path"], "count": "", "size_bytes": item["size_bytes"]})
+
+        header = ["section", "key", "count", "size_bytes"]
+        csv_text_lines: List[str] = []
+        csv_buffer_path = None
+        # Write to file or stdout
+        if output:
+            ensure_directory(output.parent)
+            with output.open('w', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=header)
+                writer.writeheader()
+                writer.writerows(rows)
+            print(f"Wrote CSV report to {output}")
+        else:
+            writer = csv.DictWriter(sys.stdout, fieldnames=header)
+            writer.writeheader()
+            writer.writerows(rows)
+        return
+
+    # text
+    def human(n: int) -> str:
+        units = ['B', 'KB', 'MB', 'GB', 'TB']
+        size = float(n)
+        i = 0
+        while size >= 1024 and i < len(units) - 1:
+            size /= 1024.0
+            i += 1
+        return f"{size:.2f} {units[i]}"
+
+    print("Inventory Report")
+    print(f"Root: {report['root']}")
+    print(f"Total files: {report['total_files']}")
+    print(f"Total size: {human(int(report['total_size_bytes']))}")
+    print("")
+    print("By extension (top 20 by size):")
+    by_ext_sorted = sorted(report.get("by_extension", []), key=lambda x: x["size_bytes"], reverse=True)[:20]
+    for item in by_ext_sorted:
+        print(f"  .{item['ext']:<8} {item['count']:>6} files  {human(int(item['size_bytes'])):>10}")
+    print("")
+    print("By month (last 12 by date):")
+    by_month = list(report.get("by_month", []))
+    by_month_sorted = sorted(by_month, key=lambda x: x["month"], reverse=True)[:12]
+    for item in by_month_sorted:
+        print(f"  {item['month']}: {item['count']:>6} files  {human(int(item['size_bytes'])):>10}")
+    print("")
+    print("Top largest files:")
+    for item in report.get("top_largest", []):
+        print(f"  {human(int(item['size_bytes'])):>10}  {item['path']}")
+
+
 def read_or_create_key(key_file: Path) -> bytes:
     """Read a Fernet key from key_file, or create a new one if missing.
 
@@ -263,6 +395,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     # Safety
     parser.add_argument("--apply", action="store_true", help="Apply changes (otherwise dry-run)")
 
+    # Inventory/report
+    parser.add_argument("--report", action="store_true", help="Inventory report (counts, sizes, largest files)")
+    parser.add_argument("--report-format", choices=["text", "json", "csv"], default="text", help="Report output format")
+    parser.add_argument("--report-output", type=Path, help="Optional file path to write report to")
+    parser.add_argument("--report-top", type=int, default=20, help="Top N largest files to include")
+
     # Dedupe
     parser.add_argument("--dedupe", choices=["report", "move", "delete"], help="Find duplicates and optionally move/delete them")
     parser.add_argument("--duplicates-dir", type=Path, help="Where to move duplicates when --dedupe move (default: <root>/_duplicates)")
@@ -299,6 +437,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     key_file = (args.key_file or (root_dir / "_key.fernet")).resolve()
 
     any_work = False
+
+    if args.report:
+        any_work = True
+        report = inventory_report(root_dir, include_hidden, exclude_globs, int(args.report_top))
+        emit_report(report, args.report_format, args.report_output)
 
     if args.dedupe:
         any_work = True
