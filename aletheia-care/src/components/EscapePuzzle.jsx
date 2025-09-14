@@ -34,6 +34,7 @@ export default function EscapePuzzle() {
   const [secretActive, setSecretActive] = React.useState(false);
   const [riddleAnswer, setRiddleAnswer] = React.useState("");
   const [message, setMessage] = React.useState("");
+  const hasCelebratedRef = React.useRef(false);
 
   // konami hook: advance stage when activated
   useKonami(() => {
@@ -71,12 +72,37 @@ export default function EscapePuzzle() {
 
   // Celebration effects when portal unlocks
   React.useEffect(() => {
+    if (hasCelebratedRef.current) return;
     if (secretActive || stage === 0) {
+      hasCelebratedRef.current = true;
+
       // Confetti burst
       try {
         confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
       } catch (err) {
         // noop if confetti not available
+      }
+
+      // 1.5s confetti stream
+      let streamInterval;
+      try {
+        const durationMs = 1500;
+        const animationEnd = Date.now() + durationMs;
+        const defaults = { startVelocity: 25, spread: 360, ticks: 60, zIndex: 9999 };
+        streamInterval = setInterval(() => {
+          const timeLeft = animationEnd - Date.now();
+          if (timeLeft <= 0) {
+            clearInterval(streamInterval);
+            return;
+          }
+          // Emit small bursts from random positions near the top
+          confetti(Object.assign({}, defaults, {
+            particleCount: 12,
+            origin: { x: Math.random(), y: Math.random() * 0.3 + 0.05 }
+          }));
+        }, 120);
+      } catch (_) {
+        // ignore if stream fails
       }
 
       // Sound effect (prefers /unlock-sound.mp3, falls back to WebAudio beep)
@@ -107,6 +133,10 @@ export default function EscapePuzzle() {
         }
       };
       playUnlockSound();
+
+      return () => {
+        if (streamInterval) clearInterval(streamInterval);
+      };
     }
   }, [secretActive, stage]);
 
@@ -155,7 +185,7 @@ export default function EscapePuzzle() {
           <img
             src="/assets/moon.png"
             alt="moon"
-            className="mx-auto w-28 h-28 cursor-pointer select-none"
+            className={`mx-auto w-28 h-28 cursor-pointer select-none ${stage === 2 ? 'moon-glow' : ''}`}
             onClick={onMoonClick}
           />
         </div>

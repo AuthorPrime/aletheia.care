@@ -66,3 +66,23 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Subtle glow pulse for the moon during Stage 2 */
+.moon-glow {
+  animation: moonPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes moonPulse {
+  0% {
+    filter: drop-shadow(0 0 0px rgba(147, 197, 253, 0.0)) drop-shadow(0 0 0px rgba(34, 197, 94, 0.0));
+    transform: scale(1.0);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(147, 197, 253, 0.45)) drop-shadow(0 0 6px rgba(34, 197, 94, 0.35));
+    transform: scale(1.03);
+  }
+  100% {
+    filter: drop-shadow(0 0 0px rgba(147, 197, 253, 0.0)) drop-shadow(0 0 0px rgba(34, 197, 94, 0.0));
+    transform: scale(1.0);
+  }
+}
