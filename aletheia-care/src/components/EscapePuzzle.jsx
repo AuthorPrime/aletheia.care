@@ -12,6 +12,10 @@ import Surprise from "./Surprise";
 
 const MOON_CLICKS_REQUIRED = 7;
 const MOON_TIME_WINDOW_SEC = 8;
+const CLICKS_MIN = 6;
+const CLICKS_MAX = 10;
+const TIME_MIN_SEC = 6;
+const TIME_MAX_SEC = 10;
 
 // Replace this hash to change the passphrase. It's SHA-256 hex of the correct word (upper-case trimmed).
 // Example: PASS = "MOON" -> sha256 = addf9430f1392c9bed3315724ca7157afa8bb3dbb59763cf6082328fe2af05d1
@@ -27,6 +31,12 @@ async function sha256Hex(text) {
     .join("");
 }
 
+function randomIntInclusive(min, max) {
+  const lo = Math.ceil(min);
+  const hi = Math.floor(max);
+  return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+}
+
 export default function EscapePuzzle() {
   const [stage, setStage] = React.useState(1); // 1..3
   const [moonClicks, setMoonClicks] = React.useState(0);
@@ -36,6 +46,10 @@ export default function EscapePuzzle() {
   const [message, setMessage] = React.useState("");
   const hasCelebratedRef = React.useRef(false);
   const ambientRef = React.useRef(null);
+  const [requiredClicks, setRequiredClicks] = React.useState(MOON_CLICKS_REQUIRED);
+  const [wrongAttempts, setWrongAttempts] = React.useState(0);
+  const [lockoutUntil, setLockoutUntil] = React.useState(0);
+  const [lockoutSecondsLeft, setLockoutSecondsLeft] = React.useState(0);
 
   // konami hook: advance stage when activated
   useKonami(() => {
@@ -49,7 +63,10 @@ export default function EscapePuzzle() {
   // Moon click handling (stage 2)
   const startMoonWindow = () => {
     setMoonClicks(0);
-    setTimerLeft(MOON_TIME_WINDOW_SEC);
+    const clicksThisRun = randomIntInclusive(CLICKS_MIN, CLICKS_MAX);
+    const timeThisRun = randomIntInclusive(TIME_MIN_SEC, TIME_MAX_SEC);
+    setRequiredClicks(clicksThisRun);
+    setTimerLeft(timeThisRun);
   };
 
   React.useEffect(() => {
@@ -60,7 +77,7 @@ export default function EscapePuzzle() {
 
   React.useEffect(() => {
     if (stage !== 2) return;
-    if (moonClicks >= MOON_CLICKS_REQUIRED) {
+    if (moonClicks >= requiredClicks) {
       setStage(3);
       setMessage("RIDDLE: I MOVE THE TIDES, BUT I AM NOT SEA. ONE WORD TO FREE ME.");
     } else if (timerLeft === 0 && moonClicks < MOON_CLICKS_REQUIRED) {
@@ -69,7 +86,7 @@ export default function EscapePuzzle() {
       setStage(1);
       setTimeout(() => setMessage("TYPE THE SECRET CODE TO BEGIN."), 1200);
     }
-  }, [moonClicks, timerLeft, stage]);
+  }, [moonClicks, timerLeft, stage, requiredClicks]);
 
   // Celebration effects when portal unlocks
   React.useEffect(() => {
@@ -223,6 +240,13 @@ export default function EscapePuzzle() {
 
   // riddle check
   const checkPassphrase = async () => {
+    // Lockout guard
+    const now = Date.now();
+    if (lockoutUntil && now < lockoutUntil) {
+      const secs = Math.max(1, Math.ceil((lockoutUntil - now) / 1000));
+      setMessage(`LOCKED — WAIT ${secs}s`);
+      return;
+    }
     const guess = (riddleAnswer || "").toString().trim().toUpperCase();
     if (!guess) return setMessage("ENTER THE ONE WORD ANSWER.");
     const hash = await sha256Hex(guess);
@@ -233,8 +257,20 @@ export default function EscapePuzzle() {
         setSecretActive(true);
         setStage(0); // unlocked
       }, 750);
+      setWrongAttempts(0);
+      setLockoutUntil(0);
     } else {
-      setMessage("NOT YET — THE WORD LIES STILL. TRY AGAIN.");
+      setWrongAttempts((prev) => {
+        const next = prev + 1;
+        if (next >= 3) {
+          const until = Date.now() + 30000; // 30s lockout
+          setLockoutUntil(until);
+          setMessage("LOCKED — WAIT 30s");
+          return 0;
+        }
+        setMessage(`NOT YET — ${3 - next} ATTEMPT(S) LEFT.`);
+        return next;
+      });
       setRiddleAnswer("");
     }
   };
@@ -251,8 +287,20 @@ export default function EscapePuzzle() {
       return;
     }
     setMoonClicks((c) => c + 1);
-    setMessage(`RITUAL PROGRESS: ${moonClicks + 1}/${MOON_CLICKS_REQUIRED}`);
+    setMessage(`RITUAL PROGRESS: ${moonClicks + 1}/${requiredClicks}`);
   };
+
+  // Lockout countdown updater
+  React.useEffect(() => {
+    if (!lockoutUntil) return;
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000));
+      setLockoutSecondsLeft(left);
+    };
+    tick();
+    const iv = setInterval(tick, 500);
+    return () => clearInterval(iv);
+  }, [lockoutUntil]);
 
   return (
     <>
@@ -277,7 +325,7 @@ export default function EscapePuzzle() {
             <div><strong>Message:</strong> {message || (stage === 1 ? "TYPE THE KONAMI CODE TO BEGIN." : "")}</div>
             {stage === 2 && (
               <div className="mt-2">
-                <div>Clicks: {moonClicks}/{MOON_CLICKS_REQUIRED}</div>
+                <div>Clicks: {moonClicks}/{requiredClicks}</div>
                 <div>Time left: {timerLeft}s</div>
               </div>
             )}
@@ -289,15 +337,25 @@ export default function EscapePuzzle() {
                   value={riddleAnswer}
                   onChange={(e) => setRiddleAnswer(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") checkPassphrase(); }}
+                  onPaste={(e) => e.preventDefault()}
+                  onDrop={(e) => e.preventDefault()}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  disabled={lockoutSecondsLeft > 0}
                 />
                 <div className="flex gap-2 mt-2">
-                  <button onClick={checkPassphrase} className="px-3 py-1 bg-green-600 rounded">
+                  <button onClick={checkPassphrase} className="px-3 py-1 bg-green-600 rounded" disabled={lockoutSecondsLeft > 0} title={lockoutSecondsLeft > 0 ? `Locked ${lockoutSecondsLeft}s` : undefined}>
                     Offer the Word
                   </button>
                   <button onClick={() => { setStage(1); setMessage("Back to start."); }} className="px-3 py-1 bg-red-600 rounded">
                     Reset
                   </button>
                 </div>
+                {lockoutSecondsLeft > 0 && (
+                  <div className="mt-2 text-red-400 text-xs">Locked — wait {lockoutSecondsLeft}s</div>
+                )}
               </div>
             )}
           </div>
