@@ -35,6 +35,7 @@ export default function EscapePuzzle() {
   const [riddleAnswer, setRiddleAnswer] = React.useState("");
   const [message, setMessage] = React.useState("");
   const hasCelebratedRef = React.useRef(false);
+  const ambientRef = React.useRef(null);
 
   // konami hook: advance stage when activated
   useKonami(() => {
@@ -134,11 +135,91 @@ export default function EscapePuzzle() {
       };
       playUnlockSound();
 
+      // One-time "curtain" confetti for first-ever unlock per browser
+      try {
+        const curtainKey = "escapePuzzleCurtainShown";
+        if (localStorage.getItem(curtainKey) !== "1") {
+          const durationMs = 800;
+          const endAt = Date.now() + durationMs;
+          const curtainInterval = setInterval(() => {
+            const left = Math.random() * 0.2;
+            const right = 1 - Math.random() * 0.2;
+            confetti({
+              particleCount: 20,
+              angle: 120,
+              spread: 60,
+              startVelocity: 35,
+              origin: { x: left, y: 0 },
+            });
+            confetti({
+              particleCount: 20,
+              angle: 60,
+              spread: 60,
+              startVelocity: 35,
+              origin: { x: right, y: 0 },
+            });
+            if (Date.now() > endAt) clearInterval(curtainInterval);
+          }, 90);
+          localStorage.setItem(curtainKey, "1");
+        }
+      } catch (_) {
+        // ignore storage errors (e.g., privacy mode)
+      }
+
       return () => {
         if (streamInterval) clearInterval(streamInterval);
       };
     }
   }, [secretActive, stage]);
+
+  // Ambient pad: fade in during Stage 3, fade out otherwise
+  React.useEffect(() => {
+    const FADE_INTERVAL_MS = 80;
+    const TARGET_VOLUME = 0.2;
+    let fadeTimer;
+
+    const ensureAudio = () => {
+      if (!ambientRef.current) {
+        ambientRef.current = new Audio("/ambient-pad.mp3");
+        ambientRef.current.loop = true;
+        ambientRef.current.volume = 0.0;
+      }
+      return ambientRef.current;
+    };
+
+    const fadeTo = async (target) => {
+      const audio = ensureAudio();
+      try {
+        if (audio.paused && target > 0) {
+          await audio.play();
+        }
+      } catch (_) {
+        // autoplay may be blocked; ignore
+      }
+      clearInterval(fadeTimer);
+      fadeTimer = setInterval(() => {
+        const v = audio.volume;
+        const next = target > v ? Math.min(target, v + 0.04) : Math.max(target, v - 0.05);
+        audio.volume = next;
+        if (Math.abs(next - target) < 0.02) {
+          audio.volume = target;
+          clearInterval(fadeTimer);
+          if (target === 0 && !audio.paused) {
+            try { audio.pause(); } catch (_) {}
+          }
+        }
+      }, FADE_INTERVAL_MS);
+    };
+
+    if (stage === 3) {
+      fadeTo(TARGET_VOLUME);
+    } else {
+      // fade out on any other stage
+      if (ambientRef.current) fadeTo(0);
+    }
+
+    return () => clearInterval(fadeTimer);
+  }, [stage]);
 
   // riddle check
   const checkPassphrase = async () => {
