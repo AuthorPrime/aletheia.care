@@ -219,3 +219,17 @@ npm run dev
 Optional assets: put `unlock-sound.mp3` and `ambient-pad.mp3` into `public/`.
 
 You’re set. If you want me to tune the riddle, passphrase, or visuals, just say the word.
+
+---
+
+## Docs & Screenshots
+
+- Operator guide (Markdown): `docs/OPERATOR_GUIDE.md`
+- Operator guide (PDF): `docs/OPERATOR_GUIDE.pdf`
+- Screenshots: `docs/screenshots/`
+
+Generate the PDF from Markdown:
+
+```bash
+npm run docs:pdf
+```
