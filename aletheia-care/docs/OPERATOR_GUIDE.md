@@ -26,3 +26,15 @@ On success: confetti + chime + portal opens.
 ---
 
 Screenshots live in `docs/screenshots/`.
+
+---
+
+## Domain & DNS (Apex only)
+
+- Primary domain: `https://aletheia.care` (no `www`)
+- Squarespace DNS:
+  - A `@` → `76.76.21.21`
+  - CNAME `www` → `cname.vercel-dns.com`
+- Repo:
+  - `vercel.json` redirects `www` and default Vercel URL → apex
+  - `index.html` has canonical to `https://aletheia.care/`

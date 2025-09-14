@@ -233,3 +233,24 @@ Generate the PDF from Markdown:
 ```bash
 npm run docs:pdf
 ```
+
+---
+
+## Domain and DNS (Apex only)
+
+Goal: serve everything at `https://aletheia.care` (no `www`).
+
+1) Vercel > Project > Settings > Domains
+   - Add `aletheia.care` and `www.aletheia.care`
+   - Set `aletheia.care` as Primary
+
+2) Squarespace DNS
+   - A `@` → `76.76.21.21`
+   - CNAME `www` → `cname.vercel-dns.com`
+   - Remove other old A/CNAME entries that point to Squarespace hosting
+
+3) Repo config
+   - `vercel.json` forces `www` and default Vercel URL → `https://aletheia.care`
+   - `index.html` includes canonical link to `https://aletheia.care/`
+
+Propagation: 5–30 minutes typically. SSL auto‑provisions on Vercel.
