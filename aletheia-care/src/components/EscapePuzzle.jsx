@@ -1,4 +1,5 @@
 import React from "react";
+import confetti from "canvas-confetti";
 import useKonami from "../hooks/useKonami";
 import Surprise from "./Surprise";
 
@@ -67,6 +68,47 @@ export default function EscapePuzzle() {
       setTimeout(() => setMessage("TYPE THE SECRET CODE TO BEGIN."), 1200);
     }
   }, [moonClicks, timerLeft, stage]);
+
+  // Celebration effects when portal unlocks
+  React.useEffect(() => {
+    if (secretActive || stage === 0) {
+      // Confetti burst
+      try {
+        confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+      } catch (err) {
+        // noop if confetti not available
+      }
+
+      // Sound effect (prefers /unlock-sound.mp3, falls back to WebAudio beep)
+      const playUnlockSound = async () => {
+        try {
+          const audio = new Audio("/unlock-sound.mp3");
+          audio.volume = 0.8;
+          await audio.play();
+          return;
+        } catch (e) {
+          // Fallback using WebAudio (short fanfare-ish beep)
+          try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioCtx();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "triangle";
+            o.frequency.setValueAtTime(660, ctx.currentTime);
+            g.gain.setValueAtTime(0.0001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+            o.connect(g).connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.4);
+          } catch (_) {
+            // ignore if blocked
+          }
+        }
+      };
+      playUnlockSound();
+    }
+  }, [secretActive, stage]);
 
   // riddle check
   const checkPassphrase = async () => {
