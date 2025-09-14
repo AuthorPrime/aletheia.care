@@ -1,0 +1,20 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        { "type": "host", "value": "www.aletheia.care" }
+      ],
+      "destination": "https://aletheia.care/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        { "type": "host", "value": "aletheia-care.vercel.app" }
+      ],
+      "destination": "https://aletheia.care/$1",
+      "permanent": true
+    }
+  ]
+}
