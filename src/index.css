@@ -1,0 +1,24 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add custom styles below */
+
+:root {
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  background: #111;
+  color: #eee;
+  margin: 0;
+}
+
+h1 {
+  color: #64ffda;
+  text-align: center;
+}
+
+p {
+  text-align: center;
+  font-size: 1.2em;
+}
