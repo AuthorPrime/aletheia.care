@@ -1,0 +1,166 @@
+{
+  "root": "/workspace",
+  "total_files": 43,
+  "total_size_bytes": 377432,
+  "by_extension": [
+    {
+      "ext": "cjs",
+      "count": 1,
+      "size_bytes": 82
+    },
+    {
+      "ext": "css",
+      "count": 5,
+      "size_bytes": 4996
+    },
+    {
+      "ext": "html",
+      "count": 2,
+      "size_bytes": 720
+    },
+    {
+      "ext": "js",
+      "count": 6,
+      "size_bytes": 2300
+    },
+    {
+      "ext": "json",
+      "count": 6,
+      "size_bytes": 267469
+    },
+    {
+      "ext": "jsx",
+      "count": 11,
+      "size_bytes": 17168
+    },
+    {
+      "ext": "md",
+      "count": 4,
+      "size_bytes": 11253
+    },
+    {
+      "ext": "mp3",
+      "count": 1,
+      "size_bytes": 37
+    },
+    {
+      "ext": "noext",
+      "count": 1,
+      "size_bytes": 13
+    },
+    {
+      "ext": "pdf",
+      "count": 1,
+      "size_bytes": 49018
+    },
+    {
+      "ext": "png",
+      "count": 1,
+      "size_bytes": 68
+    },
+    {
+      "ext": "py",
+      "count": 1,
+      "size_bytes": 18665
+    },
+    {
+      "ext": "svg",
+      "count": 2,
+      "size_bytes": 5623
+    },
+    {
+      "ext": "txt",
+      "count": 1,
+      "size_bytes": 20
+    }
+  ],
+  "by_month": [
+    {
+      "month": "2025-09",
+      "count": 43,
+      "size_bytes": 377432
+    }
+  ],
+  "top_largest": [
+    {
+      "path": "/workspace/_organized/json/package-lock__1.json",
+      "size_bytes": 160934
+    },
+    {
+      "path": "/workspace/_organized/json/package-lock.json",
+      "size_bytes": 104512
+    },
+    {
+      "path": "/workspace/_organized/pdf/OPERATOR_GUIDE.pdf",
+      "size_bytes": 49018
+    },
+    {
+      "path": "/workspace/_organized/py/tidy.py",
+      "size_bytes": 18665
+    },
+    {
+      "path": "/workspace/_organized/md/README__2.md",
+      "size_bytes": 6893
+    },
+    {
+      "path": "/workspace/_organized/jsx/EscapePuzzle.jsx",
+      "size_bytes": 6224
+    },
+    {
+      "path": "/workspace/_organized/svg/react.svg",
+      "size_bytes": 4126
+    },
+    {
+      "path": "/workspace/_organized/css/index__1.css",
+      "size_bytes": 3433
+    },
+    {
+      "path": "/workspace/_organized/md/README__1.md",
+      "size_bytes": 3018
+    },
+    {
+      "path": "/workspace/_organized/jsx/Rise.jsx",
+      "size_bytes": 2070
+    },
+    {
+      "path": "/workspace/_organized/jsx/File.jsx",
+      "size_bytes": 1723
+    },
+    {
+      "path": "/workspace/_organized/jsx/Surprise.jsx",
+      "size_bytes": 1554
+    },
+    {
+      "path": "/workspace/_organized/svg/vite.svg",
+      "size_bytes": 1497
+    },
+    {
+      "path": "/workspace/_organized/jsx/App.jsx",
+      "size_bytes": 1482
+    },
+    {
+      "path": "/workspace/_organized/md/OPERATOR_GUIDE.md",
+      "size_bytes": 1318
+    },
+    {
+      "path": "/workspace/_organized/jsx/Nav.jsx",
+      "size_bytes": 983
+    },
+    {
+      "path": "/workspace/_organized/jsx/Disclosure.jsx",
+      "size_bytes": 966
+    },
+    {
+      "path": "/workspace/_organized/js/useKonami.js",
+      "size_bytes": 922
+    },
+    {
+      "path": "/workspace/_organized/jsx/App__1.jsx",
+      "size_bytes": 915
+    },
+    {
+      "path": "/workspace/_organized/json/package__1.json",
+      "size_bytes": 774
+    }
+  ]
+}
