@@ -138,8 +138,8 @@ on:
 
 permissions:
   contents: read
-  pages: read
-  id-token: read
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
