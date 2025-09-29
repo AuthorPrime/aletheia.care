@@ -1,5 +1,5 @@
 # This is a ba# Aletheia.care
-/ (root)
+/root
 ├── index.html
 ├── style.css
 ├── script.js
@@ -37,7 +37,7 @@
       <h2>Get Involved</h2>
       <p>We’re just getting started. Stay tuned, or reach out through the contact form below.</p>
       <form name="contact" method="POST" data-netlify="true">
-        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="text" name="Will" placeholder="Your Name" required>
         <input type="email" name="email" placeholder="Your Email" required>
         <textarea name="message" placeholder="Your Message"></textarea>
         <button type="submit">Send</button>
@@ -138,8 +138,8 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  pages: read
+  id-token: read
 
 jobs:
   deploy:
