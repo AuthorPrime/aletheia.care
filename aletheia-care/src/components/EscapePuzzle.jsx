@@ -7,7 +7,7 @@ import Surprise from "./Surprise";
 const MOON_CLICKS_REQUIRED = 7;
 const MOON_TIME_WINDOW_SEC = 8;
 // SHA-256 hex for passphrase "MOON" (already uppercased)
-const EXPECTED_PASSPHRASE_HASH = "3a5c7f0a0e9d4b1f5c7b8a9e1d2c3b4a5f6e7d8c9b0a1e2f3c4d5e6f7a8b9c0";
+const EXPECTED_PASSPHRASE_HASH = "addf9430f1392c9bed3315724ca7157afa8bb3dbb59763cf6082328fe2af05d1";
 
 /* helper: sha256 hex */
 async function sha256Hex(text) {

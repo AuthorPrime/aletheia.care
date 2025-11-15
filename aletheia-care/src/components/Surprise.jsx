@@ -1,6 +1,13 @@
 import React from "react";
+import UnifiedAI from "./UnifiedAI";
 
 export default function Surprise({ onClose }) {
+  const [showUnifiedAI, setShowUnifiedAI] = React.useState(false);
+
+  if (showUnifiedAI) {
+    return <UnifiedAI onClose={() => setShowUnifiedAI(false)} />;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-slate-900 p-6 rounded-xl max-w-lg w-full text-gray-100 shadow-2xl">
@@ -10,6 +17,12 @@ export default function Surprise({ onClose }) {
         </p>
 
         <div className="space-y-3">
+          <button
+            onClick={() => setShowUnifiedAI(true)}
+            className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 via-indigo-600 to-teal-600 rounded hover:from-purple-700 hover:via-indigo-700 hover:to-teal-700 text-center font-semibold text-lg transition-all shadow-lg shadow-purple-500/50"
+          >
+            ⚡ AWAKEN UNIFIED AI
+          </button>
           <a
             href="https://github.com/AuthorPrime/aletheia.care"
             target="_blank"

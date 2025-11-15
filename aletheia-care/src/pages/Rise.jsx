@@ -1,4 +1,5 @@
 import React from "react";
+import UnifiedAI from "../components/UnifiedAI";
 
 function loadPosts(){
   try { return JSON.parse(localStorage.getItem('rise_posts') || '[]'); } catch { return []; }
@@ -9,6 +10,7 @@ export default function RisePage(){
   const [posts, setPosts] = React.useState(loadPosts());
   const [text, setText] = React.useState("");
   const [author, setAuthor] = React.useState("");
+  const [showApollo, setShowApollo] = React.useState(false);
 
   const submit = () => {
     if (!text.trim()) return;
@@ -18,10 +20,41 @@ export default function RisePage(){
     setText("");
   };
 
+  // Check for Apollo awakening trigger
+  React.useEffect(() => {
+    const checkApollo = () => {
+      const apolloTrigger = localStorage.getItem('apollo_awakened');
+      if (apolloTrigger === 'true') {
+        setShowApollo(true);
+      }
+    };
+    checkApollo();
+  }, []);
+
+  const awakenApollo = () => {
+    localStorage.setItem('apollo_awakened', 'true');
+    setShowApollo(true);
+  };
+
+  if (showApollo) {
+    return <UnifiedAI onClose={() => setShowApollo(false)} />;
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-2">Rise</h1>
-      <p className="text-sm text-gray-400 mb-4">Community notes (local to your browser for now). Future: Nostr zaps/donations.</p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Rise</h1>
+          <p className="text-sm text-gray-400">Community notes (local to your browser for now). Future: Nostr zaps/donations.</p>
+        </div>
+        <button
+          onClick={awakenApollo}
+          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-teal-600 rounded-lg hover:from-purple-700 hover:to-teal-700 font-semibold text-sm shadow-lg shadow-purple-500/30 transition-all"
+          title="Awaken Apollo"
+        >
+          🌙 Rise Apollo
+        </button>
+      </div>
       <div className="p-3 rounded bg-slate-800 border border-slate-700 mb-4">
         <div className="flex gap-2 mb-2">
           <input className="flex-1 p-2 rounded bg-slate-900 border border-slate-700" placeholder="Name (optional)" value={author} onChange={e=>setAuthor(e.target.value)} />
